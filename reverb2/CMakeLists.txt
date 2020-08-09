@@ -19,8 +19,8 @@ juce_add_plugin(reverb2
     PRODUCT_NAME "Reverb2")        # The name of the final executable, which can differ from the target name
 
 target_sources(reverb2 PRIVATE
-    PluginEditor.cpp
-    PluginProcessor.cpp)
+    reverb2_editor.cpp
+    reverb2_processor.cpp)
 
 target_compile_definitions(reverb2
     PUBLIC
@@ -29,4 +29,7 @@ target_compile_definitions(reverb2
     JUCE_VST3_CAN_REPLACE_VST2=0)
 
 target_link_libraries(reverb2 PRIVATE
-    juce::juce_audio_utils)
+    juce::juce_core
+    juce::juce_audio_processors
+    juce::juce_audio_utils
+    juce::juce_gui_basics)
