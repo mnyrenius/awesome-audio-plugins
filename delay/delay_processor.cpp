@@ -162,18 +162,24 @@ juce::AudioProcessorEditor* DelayAudioProcessor::createEditor() {
 
 //==============================================================================
 void DelayAudioProcessor::getStateInformation(juce::MemoryBlock& destData) {
-  // You should use this method to store your parameters in the memory block.
-  // You could do that either as raw data, or use the XML or ValueTree classes
-  // as intermediaries to make it easy to save and load complex data.
-  juce::ignoreUnused(destData);
+  std::unique_ptr<juce::XmlElement> xml(new juce::XmlElement("Delay"));
+  xml->setAttribute("Mix", parameters_[DelayParameters::Mix]->getValue());
+  xml->setAttribute("Time", parameters_[DelayParameters::Time]->getValue());
+  xml->setAttribute("Feedback", parameters_[DelayParameters::Feedback]->getValue());
+  copyXmlToBinary(*xml, destData);
 }
 
 void DelayAudioProcessor::setStateInformation(const void* data,
                                               int sizeInBytes) {
-  // You should use this method to restore your parameters from this memory
-  // block, whose contents will have been created by the getStateInformation()
-  // call.
-  juce::ignoreUnused(data, sizeInBytes);
+  std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+
+  if (xmlState.get() != nullptr)
+    if (xmlState->hasTagName("Delay"))
+    {
+      parameters_[DelayParameters::Mix]->setValue(xmlState->getDoubleAttribute("Mix", 0.3));
+      parameters_[DelayParameters::Time]->setValue(xmlState->getDoubleAttribute("Time", 0.5));
+      parameters_[DelayParameters::Feedback]->setValue(xmlState->getDoubleAttribute("Feedback", 0.3));
+    }
 }
 
 std::vector<AudioProcessorParameter*> DelayAudioProcessor::getParameters() {

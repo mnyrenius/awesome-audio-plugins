@@ -16,16 +16,16 @@ Reverb2AudioProcessor::Reverb2AudioProcessor()
   parameters_.resize(ReverbParameters::End);
   addParameter(parameters_[ReverbParameters::Mix] =
                    new ReverbParam("Mix", 0.3f));
-  addParameter(parameters_[ReverbParameters::Size] =
-                   new ReverbParam("Size", 0.5f));
   addParameter(parameters_[ReverbParameters::PreDelay] =
                    new ReverbParam("Predelay", 0.01f));
+  addParameter(parameters_[ReverbParameters::Size] =
+                   new ReverbParam("Size", 0.5f));
   addParameter(parameters_[ReverbParameters::Decay] =
-                   new ReverbParam("Feedback", 0.3f));
+                   new ReverbParam("Decay", 0.3f));
   addParameter(parameters_[ReverbParameters::Speed] =
-                   new ReverbParam("ModRate", 0.1f));
+                   new ReverbParam("Speed", 0.1f));
   addParameter(parameters_[ReverbParameters::Depth] =
-                   new ReverbParam("ModDepth", 0.0f));
+                   new ReverbParam("Depth", 0.0f));
   addParameter(parameters_[ReverbParameters::Damping] =
                    new ReverbParam("Damping", 0.05f));
 }
@@ -191,15 +191,32 @@ void Reverb2AudioProcessor::getStateInformation(juce::MemoryBlock& destData) {
   // You should use this method to store your parameters in the memory block.
   // You could do that either as raw data, or use the XML or ValueTree classes
   // as intermediaries to make it easy to save and load complex data.
-  juce::ignoreUnused(destData);
+  std::unique_ptr<juce::XmlElement> xml (new juce::XmlElement("Reverb2"));
+  xml->setAttribute("Mix", parameters_[Mix]->getValue());
+  xml->setAttribute("PreDelay", parameters_[PreDelay]->getValue());
+  xml->setAttribute("Size", parameters_[Size]->getValue());
+  xml->setAttribute("Decay", parameters_[Decay]->getValue());
+  xml->setAttribute("Speed", parameters_[Speed]->getValue());
+  xml->setAttribute("Depth", parameters_[Depth]->getValue());
+  xml->setAttribute("Damping", parameters_[Damping]->getValue());
+  copyXmlToBinary(*xml, destData);
 }
 
 void Reverb2AudioProcessor::setStateInformation(const void* data,
                                                 int sizeInBytes) {
-  // You should use this method to restore your parameters from this memory
-  // block, whose contents will have been created by the getStateInformation()
-  // call.
-  juce::ignoreUnused(data, sizeInBytes);
+  std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+
+  if (xmlState.get() != nullptr)
+    if (xmlState->hasTagName("Reverb2"))
+    {
+      parameters_[Mix]->setValue(xmlState->getDoubleAttribute("Mix", 0.3));
+      parameters_[PreDelay]->setValue(xmlState->getDoubleAttribute("PreDelay", 0.01));
+      parameters_[Size]->setValue(xmlState->getDoubleAttribute("Size", 0.5));
+      parameters_[Decay]->setValue(xmlState->getDoubleAttribute("Decay", 0.3));
+      parameters_[Speed]->setValue(xmlState->getDoubleAttribute("Speed", 0.1));
+      parameters_[Depth]->setValue(xmlState->getDoubleAttribute("Depth", 0.0));
+      parameters_[Damping]->setValue(xmlState->getDoubleAttribute("Damping", 0.05));
+    }
 }
 
 std::vector<AudioProcessorParameter*> Reverb2AudioProcessor::getParameters() {
